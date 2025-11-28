@@ -88,3 +88,51 @@ cousins(X,Y):- parent(P_X, X), parent(P_Y,Y),
 
 uncle(X,Y):- parent(P1, Y), male(X) ,siblings(X,P1).
 
+
+ancestor_of(X, Y) :-
+                parent(X, Y).
+
+ancestor_of(X, Y) :-
+                parent(X, Z),
+                ancestor_of(Z, Y).
+
+descendant_of(X, Y) :-
+                ancestor_of(Y, X).
+
+
+
+
+get_married_years(X,Y,Year) :- married(X,Y,Year).
+get_married_years(X,Y,Year) :- married(Y,X,Year).
+
+get_divorced_years(X,Y,Year) :- divorced(X,Y,Year).
+get_divorced_years(X,Y,Year) :- divorced(Y,X,Year).
+
+marriage_years(X, Y, Years) :-
+                            get_married_years(X,Y,Mar).
+                            get_divorced_years(X,Y,Div).
+
+                            Years is Div - Mar.
+
+
+born(jay, 1946-5-23). 
+born(claire, 1970-11-13). 
+born(mitchell, 1973-7-10).
+
+
+before(X, Y) :- X @< Y.
+
+
+older(X, Y, Older) :- born(X,YearX),
+                    born (Y,YearY),
+                    before(YearX,YearY),
+                    Older = X.
+
+older(X, Y, Older) :- born(X,YearX),
+                    born (Y,YearY),
+                    before(YearY,YearX),
+                    Older = Y.
+
+
+oldest(X) :- born(X,DateX), not (born(Y,YearY), before(YearX, YearY)).  % this works because of backtracking,
+    % if prolog selects a person and it turns out that person is not the oldest it backtracks and tries another candidate.
