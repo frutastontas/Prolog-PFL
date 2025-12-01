@@ -69,4 +69,120 @@ del_dups([], []).
 del_dups([H|T], [H|Result]) :-
     del_all(H, T, CleanedTail),
     del_dups(CleanedTail, Result).
+
+%list_perm (+L1, +L2)
+list_perm([],[]).
+list_perm(L1,[H|T]) :-
+                del_one(H,L1,CleanedList),
+                list_perm(CleanedList,T).
                        
+%replicate(+Amount, +Elem, ?List)
+
+replicate(0,_,[]).
+
+replicate(N,X,[X|Result]) :-
+                     N > 0,
+                     N1 is N -1,
+                     replicate(N1,X,Result).
+
+
+%intersperse(+Elem, +List1, ?List2)
+
+intersperse(_,[],[]).
+
+intersperse(_,[X],[X]).
+
+intersperse(C,[H|T],[H,C|Result]) :-
+                                  T \= [],
+                                  intersperse(C,T,Result).
+
+%insert_elem(+Index, +List1, +Elem, ?List2)
+
+insert_elem(0,L1,X,[X|L1]).
+
+insert_elem(N,[H|T],X,[H|Result]) :-
+                                  N > 0,
+                                  N1 is N -1,
+                                  insert_elem(N1,T,X,Result).
+
+
+
+%delete_elem(+Index, +List1, ?Elem, ?List2)
+
+delete_elem(0,[H|T],H,T).
+
+delete_elem(N,[H|T],Elem,[H|Result]) :-
+                                N > 0,
+                                N1 is N -1,
+                                delete_elem(N1,T,Elem,Result).
+
+
+%replace(+List1, +Index, ?Old, +New, ?List2)
+
+replace([H|T],0,H,New,[New|T]).
+
+replace([H|T],N,Old,New,[H|Result]) :-
+                            N > 0,
+                            N1 is N -1,
+                            replace(T,N1,Old,New,Result).
+
+
+% Append function Implementations
+
+%list_append(?L1, ?L2, ?L3).
+
+list_append([],L2,L2).
+
+list_append([H|T],L2,[H|Result]) :- list_append(T,L2,Result).
+
+
+list_member(?Elem, ?List) :- list_append(_,[Elem|_],List).
+
+list_last(List, Last) :- list_append(_,[Last|[]],List).
+
+list_nth(N, List, Elem) :-
+                        list_append(Prefix,[Elem|_],List), % split into suffix and prefix and see if the length of prefix is N
+                        length(Prefix, N).
+                        
+%lists_append(+ListOfLists, ?List)
+lists_append([],[]).
+lists_append([XS|XSS],Result) :-
+                                lists_append(XSS,R1),
+                                append(XS,R1,Result).       
+
+
+%list_del(+List, +Elem, ?Res)
+
+list_del(List,Elem,Res) :-  
+                        append(Prefix,[Elem|After],List),
+                        append(Prefix,After,Res).
+
+% list_before(?First, ?Second, ?List)
+
+list_before(First,Second,List) :-
+                            append(Prefix2,[Second|_],List),
+                            append(_,[First|_],Prefix2).
+
+% list_replace_one(+X, +Y, +List1, ?List2)
+
+list_replace_one(X,Y,List1, List2) :-
+                                append(Prefix,[X|AfterX],List1),
+                                append(Prefix,[Y|AfterX],List2).
+
+list_repeated(X, List) :- 
+                    append(_,[X|AfterX],List),
+                    append(_,[X|_],AfterX).
+
+list_slice(List1, Index, Size, List2) :- 
+                                append(Prefix1,Rest,List1),
+                                length(Prefix1,Index),
+
+                                append(List2,_,Rest),
+                                length(List2,Size).
+
+
+list_shift_rotate(+List1, +N, ?List2) :-
+                                append(Slice,Rest,List1),
+                                length(Slice,N),
+
+                                append(Rest,Slice,List2).
