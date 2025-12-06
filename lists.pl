@@ -186,3 +186,73 @@ list_shift_rotate(+List1, +N, ?List2) :-
                                 length(Slice,N),
 
                                 append(Rest,Slice,List2).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+list_to(+N, ?List) :- list_to_aux(N,1,List).
+
+
+list_to_aux(N,CurN,[N]) :-
+                        N =:= CurN.
+
+list_to_aux(N,CurN,[CurN|Result]) :-
+                        N =\= CurN,
+                        N1 is CurN +1,
+                        list_to_aux(N,N1,Result).
+
+
+list_from_to(Inf, Sup, List) :- 
+    list_from_to_aux(Inf, Sup, List).
+
+
+list_from_to_aux(Current, Sup, []) :- 
+    Current > Sup.
+
+
+list_from_to_aux(Current, Sup, [Current|Result]) :-
+    Current =< Sup,
+    Next is Current + 1,
+    list_from_to_aux(Next, Sup, Result).
+
+list_from_to_step(+Inf, +Sup, +Step, ?List) :- list_from_to_step_aux(Inf,Sup,Step,List).
+
+list_from_to_step_aux(Cur, Sup, Step,[]) :-
+                                        Cur > Sup.
+
+list_from_to_step_aux(Cur, Sup, Step, [Cur|Result]) :-
+                                        Cur =< Sup,
+                                        Next is Cur + Step,
+                                        list_from_to_step_aux(Next,Sup,Step,Result).
+
+
+
+% insert_ordered(Value, List1, List2) 
+
+insert_ordered(Value,[],[Value]).
+
+insert_ordered(Value, [H|T], [Value,H|T]) :-
+                        H >= Value.
+
+insert_ordered(Value, [H|T], [H|Result]) :-
+                        H < Value,
+                        insert_ordered(Value,T,Result).
+
+insert_sort([],[]).
+insert_sort([H|T], ?OrderedList) :-
+                    insert_sort(T,SortedTail),
+                    insert_ordered(H,SortedTail,OrderedList).
+
+
+% rle(+List1, ?List2)
+
+
+rle([],[]).
+
+rle([H|T], [Elem|List2]) :- group(==H,T,EqualList,Rest),
+                     length(EqualList,L1),
+                     L is 1 + L1,
+                     Elem = H-L,
+                     rle(Rest,List2).
+
+
