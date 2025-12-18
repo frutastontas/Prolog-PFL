@@ -143,3 +143,6 @@ print_matrix([X|XS]) :-
                     print_full_list(X),
                     nl,
                     print_matrix(XS).
+
+
+                
