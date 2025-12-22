@@ -173,3 +173,5 @@ unifiable([H|T], Term, L2) :-
 
 unifiable([H|T],Term,[H|L2]) :-
             unifiable(T,Term,L2).
+
+
