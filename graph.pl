@@ -175,3 +175,21 @@ unifiable([H|T],Term,[H|L2]) :-
             unifiable(T,Term,L2).
 
 
+op(700, fy, flight).
+op(600,xfy,from).
+op(500,xfy,to).
+op(400,xfy,at).
+op(300,yfy,:).
+
+op(700,fy,if).
+op(600,xfy,then).
+op(700,yfx,else).
+
+
+if X then Y else Z :-
+        call(X),
+        !,
+        call(Y).
+
+if X then Y else Z :-
+        call(Z).
