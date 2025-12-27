@@ -66,6 +66,46 @@ parent(dylan, poppy).
 parent(haley, george).
 parent(haley, poppy).
 
+marriage(jay, dede, 1968, 2003).
+marriage(javier, gloria, 1995, 2006).
+
+% Still married couples (for testing negative cases)
+marriage(phil, claire, 1993, current).
+marriage(mitch, cam, 2014, current).
+
+
+born(jay, 1946-5-23). 
+born(claire, 1970-11-13). 
+born(mitchell, 1973-7-10). 
+
+
+
+
+ancestor_of(X, Y) :- parent(X, Y).
+
+ancestor_of(X, Y) :-
+        parent(Z,Y),
+        ancestor_of(X,Z).
+
+descendant_of(X, Y) :-
+        ancestor_of(Y,X).
+
+
+before(X, Y) :- X @< Y.
+
+older(X, Y, X) :-
+        born(X,DateX),
+        born(Y,DateY),
+        before(DateX,DateY),
+        !.
+
+
+older(X,Y,Y).
+
+oldest(X) :-
+        born(X,DateX),
+        not((born(Y,DateY),before(DateY,DateX))).
+        
 
 
 
