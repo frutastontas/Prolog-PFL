@@ -66,3 +66,8 @@ climb(Steps,[2|Path]) :-
             Steps > 1, 
             NewSteps is Steps -2,
             climb(NewSteps,Path).
+
+
+
+
+
