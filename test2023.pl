@@ -83,4 +83,85 @@ most_lucrative_dishes(Dishes) :-
     myreverse(List,[],DecreasingList),
     extract_dishes(DecreasingList,Dishes).
 
+
+
+%G1
+edge(g1, br, o).
+edge(g1, br, ni).
+edge(g1, o, ni).
+edge(g1, o, c).
+edge(g1, o, h).
+edge(g1, h, c).
+edge(g1, h, n).
+edge(g1, n, he).
+edge(g1, c, he).
+% G2
+edge(g2, br, h).
+edge(g2, br, ni).
+edge(g2, h, ni).
+edge(g2, h, o).
+edge(g2, h, c).
+edge(g2, o, c).
+edge(g2, o, n).
+edge(g2, n, he).
+edge(g2, c, he).
+edge(g2, cl, he).
+
+
+common_edges(G1, G2, L) :-
+    extract_edges(G1,Edges1),
+    extract_edges(G2,Edges2),
+    intersection(Edges1,Edges2,L).
+
+
+extract_edges(G,ListOfEdges) :-
+    findall(O-D,edge(G,O,D),ListOfEdges).
+
+%intersection(Edges1,Edges2,Common)
+
+intersection([],_,[]).
+intersection([O-D|Rest],Edges2,[O-D|Common]) :-
+    (
+        member(O-D,Edges2);
+        member(D-O,Edges2)
+    ),
+    !,
+    intersection(Rest,Edges2,Common).
+
+intersection([_|Rest],Edges2,Common) :-
+    intersection(Rest,Edges2,Common).
+
+
+
+
+common_subgraphs(G1, G2, Subgraphs) :-
+    common_edges(G1,G2,L),
+    nodes_from_edges(L,Nodes),
+    find_components(Nodes,L,Subgraphs).
+
+
+nodes_from_edges(Edges, Nodes) :-
+    setof(X, A^B^(member(A-B, Edges), (X=A ; X=B)), Nodes).
+
+find_components([],_,[]).
+find_components([Node|Rest],Edges,[Component|Components]) :-
+    bfs([Node],Edges,[],Component),
+    subtract(Rest,Component,Subtracted),
+    find_components(Subtracted,Edges,Components).
+
+% bfs(+Fila, +Arestas, +Visitados, -Resultado)
+
+bfs([],_,Visited,Visited).
+
+bfs([Node|RestQueue],Edges,Visited,Result) :-
+    member(Node,Visited),!,
+    bfs(RestQueue,Edges,Visited,Result).
+
+bfs([Node|RestQueue],Edges,Visited,Result) :-
+    nodes_neightbours(Node,Edges,Neightbours),
+    append(RestQueue,Neightbours,UpdatedQueue),
+    bfs(UpdatedQueue,Edges,[Node|Visited],Result).
     
+
+nodes_neightbours(Node,Edges,Neightbours) :-
+    findall(X, (member(Node-X,Edges);member(X-Node,Edges)),Neightbours).
