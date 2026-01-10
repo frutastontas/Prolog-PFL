@@ -51,6 +51,24 @@ consecutive(X,Y,Board) :-
 append(Prefix,[X,Y|Suffix], Board).
 
 
+at_ends(X, [X,B,C,D,E,F]).
+at_ends(X,[A,B,C,D,E,X]).
+
+not_next_to(X, Y, Board) :-
+    \+(append(_,[X,Y|_],Board);append(_,[Y,X|_],Board)).
+
+distance(X, Y, N, Board) :-
+    nth1(XPosition,Board,X),
+    nth1(YPosition,Board,Y),
+    Distance is XPosition - YPosition,
+    N = Distance.
+
+distance(X, Y, N, Board) :-
+    nth1(XPosition,Board,X),
+    nth1(YPosition,Board,Y),
+    Distance is YPosition - XPosition,
+    N = Distance.   
+
 anywhere(X, Board) :-
     member(X, Board).
 

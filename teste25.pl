@@ -229,3 +229,7 @@ add_old_path([], _, []).
 % Pega no vizinho 'Next', cria o caminho [Next | OldPath] e continua para o resto.
 add_old_path([Next|Rest], OldPath, [[Next|OldPath]|Result]) :-
     add_old_path(Rest, OldPath, Result).
+
+
+
+
