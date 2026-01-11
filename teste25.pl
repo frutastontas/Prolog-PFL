@@ -132,7 +132,7 @@ get_all_members(Members) :-
 
 
 :- op(600,xfx,wrote).
-:- op(590,xfx,at).
+:- op(610,xfx,at).
 
 Author wrote Title at Age :-
     book(Title, AuthorID, YearOfRelease, Pages, Genres),

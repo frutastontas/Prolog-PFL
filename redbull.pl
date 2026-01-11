@@ -40,10 +40,28 @@ gates(istanbul, 9).
 gates(budapest, 6).
 gates(porto, 5).
 
-% --- Rule: a team wins if one of its pilots wins ---
-team_wins(Team, Race) :-
-    team_of(Pilot, Team),
-    won(Pilot, Race).
 
+most_gates(X) :-
+    gates(X,NumX),
+    \+ (gates(_,NumY),NumY > NumX).
 
+least_gates(X) :-
+    gates(X,NumX),
+    \+ (gates(_,NumY), NumY < NumX).
 
+gate_diff(X) :-
+    most_gates(Highest),
+    least_gates(Lowest),
+    gates(Highest,H),
+    gates(Lowest,L),
+    X is H - L.
+
+same_team(X, Y) :-
+    pilot(X),pilot(Y),
+    X \= Y,
+    team_of(X,Team),
+    team_of(Y,Team).
+
+is_from_winning_team(P, C) :-
+    won(Winner,C),
+    same_team(Winner,P).

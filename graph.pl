@@ -18,22 +18,25 @@ get_all_nodes(ListOfAirports) :-
 
 
 
-get_company_nodes(Company,ListOfNodes) :-
-                        setof(Airport, (flight(Airport,_,Company,_,_,_); flight(_,Airport,Company,_,_,_)), ListOfNodes).
-
 most_diversified(Company) :-
-                        setof(Comp, flight(_,_,Comp,_,_,_) , Companies),
-                        most_diversified_aux(Companies,ListCount),
-                        sort(ListCount, ListSorted),
-                        last(ListSorted,Company-_),
-                        member(MaxCount-Company, ListSorted).
-                        
+    findall(Len-Comp,(flight(_,_,Comp,_,_,_),get_company_destinations(Comp,ListOfDestinations),length(ListOfDestinations,Len)),L),
+    sort(L,Sorted),reverse(Sorted,Reversed),
+    Reversed = [Max-_|_],
+    findall(C,member(Max-C,Sorted),ListOfCompanies),
+    member(Company,ListOfCompanies).
 
-most_diversified_aux([],[]).
-most_diversified_aux([Company|T],[Len-Company|Rest]) :-
-                        get_company_nodes(Company,List),
-                        length(List, Len),
-                        most_diversified_aux(T,Rest).
+
+get_company_destinations(Company,ListOfDestinations) :-
+    findall(Place,(flight(Place,_,Company,_,_,_);flight(_,Place,Company,_,_,_)),L),
+    sort(L,ListOfDestinations).
+
+
+
+
+
+
+
+
                         
 find_flights(Origin, Destination, Flights) :-
                         dfs_flights(Origin,Destination,[Origin],Flights).
@@ -47,44 +50,17 @@ dfs_flights(Current,Destination, Visited, [Code|Result]) :-
 
 
 
+%%%% Exercise can be useful to put in the file for the test
+find_flights_bfs(Origin, Destination, Path) :-
+    bfs([[Origin]],Destination,L),
+    reverse(L,Path).
 
-find_flights_bfs(Origin, Destination, Flights) :-
-    % A fila começa com o par: Origin - CaminhoVazio
-    bfs_flights([Origin-[]], Destination, [Origin], Flights).
+bfs([[Dest|Path]|_],Dest,[Dest|Path]).
 
-% 1. Caso Base: O primeiro elemento da fila é o Destino
-bfs_flights([Destination-PathRev|_], Destination, _, Flights) :-
-    reverse(PathRev, Flights). % O caminho foi construído ao contrário, inverte-se no fim
-
-% 2. Passo Recursivo: O primeiro elemento NÃO é o destino
-bfs_flights([Current-Path|RestQueue], Destination, Visited, Flights) :-
-    findall(
-        Next-[Code|Path],  % O que queremos na fila: Próximo nó e o caminho atualizado
-        (
-            flight(Current, Next, _, Code, _, _), % Encontra voo
-            \+ member(Next, Visited),             % Verifica se já foi visitado globalmente
-            \+ member_queue(Next, RestQueue)      % (Opcional) Verifica se já está na fila de espera
-        ),
-        NewNodes % Lista de novos pares Vizinho-Caminho
-    ),
-    
-    % Atualiza visitados (apenas para a lógica não repetir nós)
-    extract_nodes(NewNodes, NodesOnly),
-    append(Visited, NodesOnly, NewVisited),
-    
-    % A Lógica BFS: Adiciona os novos no FIM da fila
-    append(RestQueue, NewNodes, NewQueue),
-    
-    % Chama recursivamente
-    bfs_flights(NewQueue, Destination, NewVisited, Flights).
-
-% Auxiliares
-% Verifica se um nó existe dentro da estrutura complexa da fila
-member_queue(Node, Queue) :- member(Node-_, Queue).
-
-% Extrai apenas os nomes dos aeroportos para atualizar a lista de visitados
-extract_nodes([], []).
-extract_nodes([Node-_|T], [Node|R]) :- extract_nodes(T, R).
+bfs([[Current|Path]|Rest],Dest,Result) :-
+    findall([Next,Current|Path],(flight(Current,Next,_,_,_,_), \+ (memberchk(Next,[Current|Path]))),NextNodes),
+    append(Rest,NextNodes,UpdatedQ),
+    bfs(UpdatedQ,Dest,Result).
                         
                         
 
@@ -121,24 +97,33 @@ dfs_with_stops(Current,Destination,[S|R],Acc,Flights) :-
 
 find_circular_trip(MaxSize, Origin, Cycle) :-
                 flight(Origin,Neightbour,Code,_,_,_),
-                dfs_flights(Neightbour,Origin,[Origin,Neightbour],Flights),
+                dfs_flights(Neightbour,Origin,[Neightbour],Flights),
                 length([Code|Flights],L),
                 MaxSize >= L,
                 Cycle = [Code|Flights].
 
+
+
+
 strongly_connected(ListOfNodes) :-
-                strongly_connected_main(ListOfNodes,ListOfNodes).
+    strongly_connected(ListOfNodes,ListOfNodes).
 
-strongly_connected_main([],_).
-strongly_connected_main([H|T],List) :-
-                can_reach(H,List),              % see if a node can reach all the others
-                strongly_connected_main(T,List). % check if the next nodes can also reach all the other nodes
+strongly_connected([],_).
+strongly_connected([H|T],List) :-
+    can_reach(H,List),
+    strongly_connected(T,List).
 
-    
-can_reach(Origin,[]).
-can_reach(Origin,[H|T]) :-
-                (Origin==H;dfs_flights(Origin,H,_)),
-                can_reach(Origin,T).
+can_reach(_,[]).
+
+can_reach(Origin,[Dest|Rest]) :-
+    (Origin=Dest;find_flights(Origin,Dest,_)),
+    can_reach(Origin,Rest).
+
+
+
+
+
+
 
 strongly_connected_components(Components) :-
     get_all_nodes(AllNodes),             % 1. Vai buscar todos (já tens este predicado)

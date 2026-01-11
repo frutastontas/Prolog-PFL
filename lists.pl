@@ -229,6 +229,13 @@ list_from_to_step_aux(Cur, Sup, Step, [Cur|Result]) :-
 
 % insert_ordered(Value, List1, List2) 
 
+is_ordered([]).
+is_ordered([_]).
+is_ordered([X,Y|Rest]) :-
+    X =< Y,
+    is_ordered([Y|Rest]).
+
+
 insert_ordered(Value,[],[Value]).
 
 insert_ordered(Value, [H|T], [Value,H|T]) :-
@@ -239,7 +246,7 @@ insert_ordered(Value, [H|T], [H|Result]) :-
                         insert_ordered(Value,T,Result).
 
 insert_sort([],[]).
-insert_sort([H|T], ?OrderedList) :-
+insert_sort([H|T], OrderedList) :-
                     insert_sort(T,SortedTail),
                     insert_ordered(H,SortedTail,OrderedList).
 
@@ -256,3 +263,33 @@ rle([H|T], [Elem|List2]) :- group(==H,T,EqualList,Rest),
                      rle(Rest,List2).
 
 
+un_rle([],[]).
+un_rle([C-N|Rest], List2) :-
+    repeat_char(N,C,Repeated),
+    un_rle(Rest,Result),
+    append(Repeated,Rest,List2).
+
+
+repeat_char(0,_,[]) :- !.
+repeat_char(N,C,[C|List]) :-
+    N1 is N -1,
+    repeat_char(N1,C,List).
+
+
+
+pascal(1,[[1]]).
+pascal(N, Lines) :-
+    N1 is N - 1,
+    pascal(N1,ResultingLines),
+    last(ResultingLines,LastLine),
+    process_next_row(LastLine,NewLine),
+    append([1],NewLine,NewRow),
+    append(ResultingLines,[NewRow],Lines).
+    
+
+%process_next_row(Line,NewLine)
+
+process_next_row([_],[1]).  %always end with one
+process_next_row([X,Y|Line],[Result|Rest]) :-
+    Result is X+Y,
+    process_next_row([Y|Line],Rest).
