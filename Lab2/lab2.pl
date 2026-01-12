@@ -1,6 +1,5 @@
 
-
-%%%%%%%%%% Examples
+:- use_module(library(lists)).
 
 %% 12 solutions 
 example(1, [ next_to(white,orange), 
@@ -34,110 +33,76 @@ example(4, [ position(yellow,[1,5]),
              position(black,[1,4]), 
              across(white,yellow) ]).
 
-
-
-
-%%%%%%%%%%%%%%%%%%
-
-%Board([A,B,C,D,E,F])
-
 next_to(X,X,_). 
 next_to(X,Y,[A,B,C,D,E,F]) :- 
-consecutive(X,Y,[A,B,C,D,E,F]). 
+    consecutive(X,Y,[A,B,C,D,E,F]). 
 next_to(X,Y,[A,B,C,D,E,F]) :- 
-consecutive(Y,X,[A,B,C,D,E,F]).
+    consecutive(Y,X,[A,B,C,D,E,F]). 
 
 consecutive(X,Y,Board) :-  
-append(Prefix,[X,Y|Suffix], Board).
-
-
-at_ends(X, [X,B,C,D,E,F]).
-at_ends(X,[A,B,C,D,E,X]).
-
-not_next_to(X, Y, Board) :-
-    \+(append(_,[X,Y|_],Board);append(_,[Y,X|_],Board)).
-
-distance(X, Y, N, Board) :-
-    nth1(XPosition,Board,X),
-    nth1(YPosition,Board,Y),
-    Distance is XPosition - YPosition,
-    N = Distance.
-
-distance(X, Y, N, Board) :-
-    nth1(XPosition,Board,X),
-    nth1(YPosition,Board,Y),
-    Distance is YPosition - XPosition,
-    N = Distance.   
+    append(Prefix,[X,Y|Suffix], Board). 
 
 anywhere(X, Board) :-
-    member(X, Board).
+    member(X,Board).
 
-one_space(X,X,_).
 one_space(X, Y, Board) :-
-    append(_,[X,_,Y|_],Board).
+    (
+        append(_,[X,_,Y|_],Board);
+        append(_,[Y,_,X|_],Board)
+    ).
 
-one_space(X,Y,Board) :-
-    append(_,[Y,_,X|_],Board).
-    
-
-position(X, [Pos|_], Board) :-
-    nth1(Pos,Board,X). % See if X is in the position specified by Pos
-
-% If not then go to this predicate to continue the search in next position
-position(X,[_|Positions],Board) :-
-    position(X,Positions,Board).
-    
-across(X,X,_).
 across(X, Y, [A,B,C,D,E,F]) :-
-    SubList1 = [A,B],
-    SubList2 = [D,E,F],
+    Bottom = [A,B],
+    Upper = [D,E,F],
     (
-        (member(X,SubList1), member(Y,SubList2))
-        ;
-        (member(Y,SubList1), member(X,SubList2))
+        (member(X,Bottom),member(Y,Upper));
+        (member(Y,Bottom),member(X,Upper))
     ).
 
-same_edge(X,X,_).
 same_edge(X, Y, [A,B,C,D,E,F]) :-
-    SubList1 = [A,B],
-    SubList2 = [D,E,F],
+    Bottom = [A,B],
+    Upper = [D,E,F],
     (
-        (member(X,SubList1), member(Y,SubList1))
-        ;
-        (member(X,SubList2), member(Y,SubList2))
+        (member(X,Bottom),member(Y,Bottom));
+        (member(Y,Upper),member(X,Upper))
     ).
 
+position(X, [Pos|Positions], Board) :-
+    nth1(Pos,Board,X).
+
+position(X, [_|Positions], Board) :-
+    position(X,Positions,Board).
 
 
-
-solve(Constraints,Board) :-
-    length(List, 6), % Create a list with 6 slots to be filled
-    process_constraints(Constraints,List),
-    ListOfColors = [green, yellow, blue, orange, white, black], % generate a list of the colors to check if all the slots on the board were filled
-    permutation(ListOfColors, List),    % if it is a permutation it means that all the constraints worked and it created a filled board
+solve(Constraints, Board) :-
+    length(List, 6),
+    call_constraints(Constraints,List),
+    ValidBoard = [green, yellow, blue, orange, white, black],
+    permutation(List, ValidBoard),
     Board = List.
     
-    
-process_constraints([],Board).
-process_constraints([Constraint|Constraints], Board) :-
+
+call_constraints([],Board).
+call_constraints([Constraint|Constraints],Board) :-
     call(Constraint,Board),
-    process_constraints(Constraints,Board).
+    call_constraints(Constraints,Board).
 
 
 best_score(Constraints, Score) :-
-    ListOfColors = [green, yellow, blue, orange, white, black],
-    setof(S,Perm^(permutation(ListOfColors,Perm), calculate_score(Constraints,Perm,0,S)),Scores),
-    last(Scores, Score).
+    ValidBoard = [green, yellow, blue, orange, white, black],
+    findall(S, (permutation(ValidBoard,Board), calculate_score(Constraints,Board,0,S)), List),
+    sort(List,Sorted),
+    reverse(Sorted, Reversed),
+    Reversed = [Score|_].
+    
     
 
+calculate_score([],Board,Score,Score).
 
-
-calculate_score([],_,Score,Score).
-
-calculate_score([Constr|Constraints],Board,CurrentScore,Score) :-
-    call(Constr,Board),!,
-    calculate_score(Constraints,Board,CurrentScore,Score). %Current score stays the same
+calculate_score([Constraint|Constraints],Board,CurrentScore,Score) :-
+    call(Constraint,Board),!,
+    calculate_score(Constraints,Board,CurrentScore,Score).
 
 calculate_score([_|Constraints],Board,CurrentScore,Score) :-
-    NewScore is CurrentScore -1,
-    calculate_score(Constraints,Board,NewScore,Score). %Current score goes down
+    NewScore is CurrentScore - 1,
+    calculate_score(Constraints,Board,NewScore,Score).
